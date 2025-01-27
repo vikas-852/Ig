@@ -13,17 +13,23 @@ proxies = {
     'http': 'http://92mmt5g8:DiHFv6FWO56n@103.157.205.53:3192'
     }
 
-def get_headers(Country,Language):
+def get_headers(Country, Language):
     while True:
         try:
-            an_agent=f'Mozilla/5.0 (Linux; Android {random.randint(9,13)}; {"".join(random.choices(string.ascii_uppercase, k=3))}{random.randint(111,999)}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36'
+            an_agent = f'Mozilla/5.0 (Linux; Android {random.randint(9, 13)}; {"".join(random.choices(string.ascii_uppercase, k=3))}{random.randint(111, 999)}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36'
 
+            res = requests.get("https://www.facebook.com/",
+                               headers={'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'},
+                               proxies=proxies, timeout=30)
+            res.raise_for_status()  # Ensure the request was successful
 
-            res = requests.get("https://www.facebook.com/",headers={'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'},proxies=proxies, timeout=30)
+            # Check if the expected string is present
+            if '["_js_datr","' not in res.text:
+                print(f'{false}Unable to find the required data in the response from Facebook.')
+                return None  # Return or handle this case appropriately
+
             js_datr = res.text.split('["_js_datr","')[1].split('",')[0]
-            r=requests.get('https://www.instagram.com/api/v1/web/accounts/login/ajax/',headers={
-                'user-agent': an_agent
-            },proxies=proxies,timeout=30).cookies
+            r = requests.get('https://www.instagram.com/api/v1/web/accounts/login/ajax/', headers={'user-agent': an_agent}, proxies=proxies, timeout=30).cookies
 
             headers1 = {
                 'authority': 'www.instagram.com',
@@ -42,9 +48,9 @@ def get_headers(Country,Language):
                 'user-agent': an_agent,
                 'viewport-width': '980',
             }
-            response1 = requests.get('https://www.instagram.com/', headers=headers1,proxies=proxies,timeout=30)
-            appid=response1.text.split('APP_ID":"')[1].split('"')[0]
-            rollout=response1.text.split('rollout_hash":"')[1].split('"')[0]
+            response1 = requests.get('https://www.instagram.com/', headers=headers1, proxies=proxies, timeout=30)
+            appid = response1.text.split('APP_ID":"')[1].split('"')[0]
+            rollout = response1.text.split('rollout_hash":"')[1].split('"')[0]
             headers = {
                 'authority': 'www.instagram.com',
                 'accept': '*/*',
@@ -71,9 +77,11 @@ def get_headers(Country,Language):
                 'x-web-device-id': r["ig_did"],
             }
             return headers
+        except requests.exceptions.RequestException as e:
+            print(f'{false}Request error: {e}')
         except Exception as E:
-            print(f'{false}Error in Connection')
-
+            print(f'{false}Error in Connection: {E}')
+            
 def Get_UserName(Headers,Name,Email):
     try:
 
