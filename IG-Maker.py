@@ -9,7 +9,10 @@ except:
     os.system("pip install names")
 import requests
 
-proxies =None
+proxies = {
+    'http': 'http://92mmt5g8:DiHFv6FWO56n@103.157.205.53:3192',
+    'https': 'http://92mmt5g8:DiHFv6FWO56n@103.157.205.53:3192',
+}
 
 def get_headers(Country,Language):
     while True:
