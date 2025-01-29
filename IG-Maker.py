@@ -3,28 +3,41 @@ import string
 import time
 import os
 import requests
-import names
 
-# Terminal Color Codes
+# Color codes for terminal output
 rd, gn, lgn, yw, lrd, be, pe = '\033[00;31m', '\033[00;32m', '\033[01;32m', '\033[01;33m', '\033[01;31m', '\033[94m', '\033[01;35m'
 cn, k, g = '\033[00;36m', '\033[90m', '\033[38;5;130m'
 true = f'{rd}[{lgn}+{rd}]{gn} '
 false = f'{rd}[{lrd}-{rd}] '
 
-# Proxy settings (ensure the format is correct)
+# Proxy configuration
 proxies = {
-    "http": "http://2aa31SFEZZ-zone-abc-region-US-session-dyMzb3XA-sessTime-1:48665630@na.f15df02e5d366174.abcproxy.vip:4950",
-    "https": "http://2aa31SFEZZ-zone-abc-region-US-session-dyMzb3XA-sessTime-1:48665630@na.f15df02e5d366174.abcproxy.vip:4950"
+    "http": "http://username:password@na.f15df02e5d366174.abcproxy.vip:4950",
+    "https": "http://username:password@na.f15df02e5d366174.abcproxy.vip:4950",
 }
 
-# Function to get headers
+# Check for the 'names' package, if not found, install it
+try:
+    import names
+except ImportError:
+    os.system("pip install names")
+
 def get_headers(Country, Language):
     while True:
         try:
             an_agent = f'Mozilla/5.0 (Linux; Android {random.randint(9, 13)}; {"".join(random.choices(string.ascii_uppercase, k=3))}{random.randint(111, 999)}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36'
             res = requests.get("https://www.instagram.com/", headers={'user-agent': an_agent}, proxies=proxies, timeout=30)
+
+            if res.status_code != 200:
+                print(f'{false}Error: Unable to connect to Instagram. Status code: {res.status_code}')
+                continue
+            
             js_datr = res.text.split('["_js_datr","')[1].split('",')[0]
             r = requests.get('https://www.instagram.com/api/v1/web/accounts/login/ajax/', headers={'user-agent': an_agent}, proxies=proxies, timeout=30).cookies
+
+            if 'csrftoken' not in r or 'mid' not in r or 'ig_did' not in r:
+                print(f'{false}Error: Missing required cookies. Response cookies: {r}')
+                continue
 
             headers1 = {
                 'authority': 'www.instagram.com',
@@ -34,6 +47,7 @@ def get_headers(Country, Language):
                 'user-agent': an_agent,
             }
             response1 = requests.get('https://www.instagram.com/', headers=headers1, proxies=proxies, timeout=30)
+
             appid = response1.text.split('APP_ID":"')[1].split('"')[0]
             rollout = response1.text.split('rollout_hash":"')[1].split('"')[0]
 
@@ -57,7 +71,6 @@ def get_headers(Country, Language):
         except Exception as E:
             print(f'{false}Error in Connection: {E}')
 
-# Function to get a username suggestion
 def Get_UserName(Headers, Name, Email):
     try:
         updict = {"referer": 'https://www.instagram.com/accounts/signup/birthday/'}
@@ -67,6 +80,7 @@ def Get_UserName(Headers, Name, Email):
                 'email': Email,
                 'name': Name + str(random.randint(1, 99)),
             }
+
             response = requests.post(
                 'https://www.instagram.com/api/v1/web/accounts/username_suggestions/',
                 headers=Headers,
@@ -84,13 +98,13 @@ def Get_UserName(Headers, Name, Email):
     except Exception as E:
         print(f'{false}Error in Set Username: {E}')
 
-# Function to send verification email
 def Send_SMS(Headers, Email):
     try:
         data = {
             'device_id': Headers['cookie'].split('mid=')[1].split(';')[0],
             'email': Email,
         }
+
         response = requests.post(
             'https://www.instagram.com/api/v1/accounts/send_verify_email/',
             headers=Headers,
@@ -102,16 +116,17 @@ def Send_SMS(Headers, Email):
     except Exception as E:
         print(f'{false}Error In Send Code: {E}')
 
-# Function to validate the code sent to the email
 def Validate_Code(Headers, Email, Code):
     try:
         updict = {"referer": 'https://www.instagram.com/accounts/signup/emailConfirmation/'}
         Headers = {key: updict.get(key, Headers[key]) for key in Headers}
+
         data = {
             'code': Code,
             'device_id': Headers['cookie'].split('mid=')[1].split(';')[0],
             'email': Email,
         }
+
         response = requests.post(
             'https://www.instagram.com/api/v1/accounts/check_confirmation_code/',
             headers=Headers,
@@ -123,7 +138,6 @@ def Validate_Code(Headers, Email, Code):
     except Exception as E:
         print(f'{false}Invalid Code: {E}')
 
-# Function to create an account
 def Create_Acc(Headers, Email, SignUpCode):
     try:
         firstname = names.get_first_name()
@@ -154,65 +168,59 @@ def Create_Acc(Headers, Email, SignUpCode):
             proxies=proxies,
             timeout=30
         )
+
         if '"account_created":true' in response.text:
-            print(f'''{true}UserName: {UserName}\n{true}PassWord: {Password}\n{true}SessionID: {response.cookies['sessionid']}\n{true}Csrftoken: {response.cookies['csrftoken']}\n{true}Ds_user_id: {response.cookies['ds_user_id']}\n{true}Ig_did: {response.cookies['ig_did']}\n{true}Rur: {response.cookies['rur']}\n{true}Mid: {Headers['cookie'].split('mid=')[1].split(';')[0]}\n{true}Datr: {Headers['cookie'].split('datr=')[1]}''')
-            follow_user(Headers, UserName)  # Follow the specified user
+            print(f'''{true}UserName: {UserName}\n{true}PassWord: {Password}\n{true}Sessionid: {response.cookies['sessionid']}\n{true}Csrftoken: {response.cookies['csrftoken']}\n{true}Ds_user_id: {response.cookies['ds_user_id']}\n{true}Ig_did: {response.cookies['ig_did']}\n{true}Rur: {response.cookies['rur']}\n{true}Mid: {Headers['cookie'].split('mid=')[1].split(';')[0]}\n{true}Datr: {Headers['cookie'].split('datr=')[1]}''')            
         else:
-            print(f'{false}Account not created: {response.text}')
+            print(f'{false}Account creation failed: {response.text}')
     except Exception as E:
         print(f'{false}Error in Create Account: {E}')
 
-# Function to follow a user
-def follow_user(Headers, UserName):
-    try:
-        follow_data = {
-            'user_id': 'vikas._.841',  # Change to the user you want to follow
-            'device_id': Headers['cookie'].split('mid=')[1].split(';')[0]
-        }
-        response = requests.post(
-            f'https://www.instagram.com/api/v1/friendships/create/{UserName}/',
-            headers=Headers,
-            data=follow_data,
-            proxies=proxies,
-            timeout=30
-        )
-        if '"status":"ok"' in response.text:
-            print(f"{true}Successfully followed {UserName}")
-        else:
-            print(f"{false}Failed to follow {UserName}: {response.text}")
-    except Exception as E:
-        print(f'{false}Error in Follow User: {E}')
-
-# Clear the console
 if __import__("platform").system() == "Windows":
     os.system("cls")
 else:
     os.system("clear")
-
-# Main execution
+    
+# Display a welcome message and tool information
 print(f"""{gn}
  _____   _____          __  __         _                
 |_   _| / ____|        |  \/  |       | |               
-  | |  | |  __  ______ | \  / |  __ _ | | __  ___  _ __ 
-  | |  | | |_ ||______|| |\/| | / _` || |/ / / _ \| '__|
- _| |_ | |__| |        | |  | || (_| ||   < |  __/| |   
-|_____| \____|        |_|  |_| \__,_||_|\_\ \___||_|  
-                                                        
-{yw}  Author:   Unknown
-{yw}  Version:  1.0
-{yw}  Date:     2023
+  | |  | (___    ___   | \  / |  __ _ | |_   ___   ___  
+  | |   \___ \  / _ \  | |\/| | / _` || __| / _ \ / _ \ 
+ _| |_  ____) || (_) | | |  | || (_| || |_ |  __/| (_) |
+|_____| |_____/  \___/  |_|  |_| \__,_| \__| \___| \___/ 
+                                                                                                                 
+{yw}Instagram Account Creation Tool {gn}  
 """)
+print(f'{gn}~' * 65)
 
-Country = 'US'
-Language = 'en'
+# Collect user input for email and sign-up code
+Email = input(f'Enter Email: ').strip()  # Using .strip() to remove any extra spaces
+SignUpCode = input(f'Enter SignUp Code: ').strip()
 
-while True:
-    try:
-        Email = input(f"{gn}Enter Email: ")
-        SignUpCode = input(f"{gn}Enter SignUp Code: ")
-        Headers = get_headers(Country, Language)
-        Create_Acc(Headers, Email, SignUpCode)
-        break
-    except Exception as E:
-        print(f'{false}Error: {E}')
-                
+# Getting headers with the specified country and language
+Headers = get_headers('US', 'en')
+
+# Sending SMS verification code to the provided email
+sms_response = Send_SMS(Headers, Email)
+
+# Check if SMS was sent successfully
+if sms_response:
+    print(f'{true}Verification code sent to {Email}. Please check your inbox.')
+else:
+    print(f'{false}Failed to send verification code to {Email}. Please try again.')
+
+# Wait for the user to enter the verification code
+Code = input(f'Enter Verification Code: ').strip()
+
+# Validate the entered code
+validation_response = Validate_Code(Headers, Email, Code)
+
+if validation_response and '"status":"ok"' in validation_response.text:
+    print(f'{true}Verification code validated successfully.')
+else:
+    print(f'{false}Invalid verification code. Please check and try again.')
+    exit(1)  # Exit the program if validation fails
+
+# Proceed to create the account
+Create_Acc(Headers, Email, SignUpCode)
