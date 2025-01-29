@@ -3,6 +3,7 @@ import string
 import time
 import os
 import requests
+import names
 
 # Terminal Color Codes
 rd, gn, lgn, yw, lrd, be, pe = '\033[00;31m', '\033[00;32m', '\033[01;32m', '\033[01;33m', '\033[01;31m', '\033[94m', '\033[01;35m'
@@ -200,7 +201,7 @@ print(f"""{gn}
 {yw}  Author:   Unknown
 {yw}  Version:  1.0
 {yw}  Date:     2023
-''')
+""")
 
 Country = 'US'
 Language = 'en'
@@ -214,4 +215,4 @@ while True:
         break
     except Exception as E:
         print(f'{false}Error: {E}')
-        
+                
